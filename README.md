@@ -31,7 +31,7 @@ each with its own identification number, description, and at least one public re
 
 ### 4. What is ExploitDB?
 
-ExploitDB is a publically available archive of security exploits and software that is known to be vulnerable. Each exploit is given an Exploit ID to be used in the Exploit DB. Oftentimes, these exploits will be matched with a [CVE ID](https://cve.mitre.org/cve/identifiers/).  
+[ExploitDB](https://www.exploit-db.com/) is a publically available archive of security exploits and software that is known to be vulnerable. Each exploit is given an Exploit ID to be used in the Exploit DB. Oftentimes, these exploits will be matched with a [CVE ID](https://cve.mitre.org/cve/identifiers/).  
 
 ### 5: What is CWE?
 
