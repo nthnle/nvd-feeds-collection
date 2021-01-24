@@ -44,7 +44,7 @@ This data enables automation of vulnerability management, security measurement, 
 
 ### 7. What is CVSS?
 
-> The [Common Vulnerability Scoring System (CVSS)]((https://nvd.nist.gov/vuln-metrics/cvss)) is an open framework for communicating the characteristics and severity of software vulnerabilities.
+> The [Common Vulnerability Scoring System (CVSS)](https://nvd.nist.gov/vuln-metrics/cvss) is an open framework for communicating the characteristics and severity of software vulnerabilities.
 CVSS consists of three metric groups: Base, Temporal, and Environmental. The Base metrics produce a score ranging from 0 to 10, which can then be modified by scoring the Temporal and Environmental metrics.
 A CVSS score is also represented as a vector string, a compressed textual representation of the values used to derive the score.
 Thus, CVSS is well suited as a standard measurement system for industries, organizations, and governments that need accurate and consistent vulnerability severity scores.
