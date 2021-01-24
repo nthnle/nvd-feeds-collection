@@ -10,7 +10,7 @@ We will be collecting the data, merging, and writing it to a table in DynamoDB e
 
 ## Solution Architecture
 
-![SolutionArchitectureDiagram](./screenshots/SolutionArchitectureDiagram.png)
+![SolutionArchitectureDiagram](./attachments/SolutionArchitectureDiagram.png)
 
 ## FAQ
 
