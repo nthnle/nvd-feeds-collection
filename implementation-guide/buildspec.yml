@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt update
+      - pip3 install --upgrade pip
+      - pip3 install boto3
+      - pip3 install bs4
+      - pip3 install pandas
+      - pip3 install requests
+  build:
+    commands:
+      - python3 cveV2.py
+      - echo CVE exploits and metrics have been collected
