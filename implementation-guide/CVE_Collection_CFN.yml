@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >- 
+  Deploys resources needed for the CVE Collection solution.
+  This entire solution is standalone and only requires the necessary source code uploaded as a ZIP archive for use by AWS CodeBuild.
+Parameters:
+  InitialCommitBucket:
+      Type: String
+      Description: The name of the S3 bucket you uploaded the ZIP archive of the code artifacts to 
+  InitialCommitKey:
+      Type: String
+      Description: Name of the package for the initial commit for the DevSecOps pipeline DO NOT include .zip
+      Default: codecommit-archive
+  CodeBuildProjName:
+      Type: String
+      Description: Name for your CodeBuild Project
+      Default: CVECollection
+Resources:
+  CVECollectionRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: Contains the code artifacts for CodeBuild to create CVECollection - Managed by CloudFormation
+      RepositoryName: CVECollectionRepo
+      Code:
+        S3:
+          Bucket: !Ref InitialCommitBucket
+          Key: !Sub '${InitialCommitKey}.zip'
+  CVETable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions:
+        - 
+          AttributeName: CveId
+          AttributeType: S
+        - 
+          AttributeName: ExploitId
+          AttributeType: S
+      KeySchema: 
+        - 
+          AttributeName: CveId
+          KeyType: HASH
+        - 
+          AttributeName: ExploitId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub '${CodeBuildProjName}Table'
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${CodeBuildProjName}Role'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+      Policies:
+      - PolicyName: !Sub '${CodeBuildProjName}Policy'
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - codecommit:GitPull
+            Resource: !GetAtt CVECollectionRepo.Arn
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - dynamodb:PutItem
+            Resource: !GetAtt CVETable.Arn
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: { Service: codebuild.amazonaws.com }
+          Action:
+          - sts:AssumeRole
+  CVECollectionCodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref CodeBuildProjName
+      Description: Grabs data from CVE Reference Map and NVD data feeds, merges them, and writes it to a table in DynamoDB - Managed by CloudFormation
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+        PrivilegedMode: True
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: CVE_TABLE
+          Type: PLAINTEXT
+          Value: !Ref CVETable
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Source:
+        BuildSpec: buildspec.yml
+        Type: CODECOMMIT
+        Location: !GetAtt CVECollectionRepo.CloneUrlHttp
+  CodeBuildEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${CodeBuildProjName}-SchedulerRole'
+      Policies:
+      - PolicyName: !Sub '${CodeBuildProjName}-SchedulerRolePolicy'
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - codebuild:StartBuild
+            Resource: !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjName}'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: { Service: events.amazonaws.com }
+          Action:
+            - sts:AssumeRole
+  CVECollectionCodeBuildEvent: 
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${CodeBuildProjName}-Scheduler'
+      Description: Runs CVECollectionV2-Creator every 7 days - Managed by CloudFormation
+      ScheduleExpression: rate(7 days)
+      State: ENABLED
+      Targets: 
+        - 
+          Arn: !GetAtt CVECollectionCodeBuild.Arn
+          Id: QSCBAutomationTrigger
+          RoleArn: !GetAtt CodeBuildEventRole.Arn
