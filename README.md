@@ -6,7 +6,7 @@ This repository contains all architecture and development artifacts for the purp
 
 MITRE has mapped ExploitDB IDs to CVE IDs and placed them in an HTML table on their website.
 NVD's JSON Vulnerability Feeds include a description and associated reference links from the CVE dictionary feed, as well as CVSS base scores, vulnerable product configuration, and weakness categorization for each vulnerability.
-We will be collecting the data, merging, and writing it to a table in DynamoDB every 7 days. You can skip all the AWS elements and run the script `cveV2.py` to get a merged JSON file.
+We will be collecting the data, merging, and writing it to a table in DynamoDB every 7 days. You can skip all the AWS elements and run the script `cveCollection.py` to get a merged JSON file.
 
 ## Solution Architecture
 
